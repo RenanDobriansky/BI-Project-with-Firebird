@@ -1,0 +1,71 @@
+-- Primeira versao da fVendas
+-- Base escolhida: NFSAIDA + NFSAIITE + CLIENTE + PRODUTO
+-- Motivo: e a trilha mais confiavel do inventario para venda faturada
+--
+-- Tabelas usadas:
+--   NFSAIDA   = cabecalho da venda faturada
+--   NFSAIITE  = itens da venda
+--   CLIENTE   = dimensao de cliente
+--   PRODUTO   = dimensao de produto
+--   PEDIDO    = pedido comercial de origem, quando identificado
+--
+-- Observacoes:
+-- - CODIGO_VENDA usa preferencialmente NOTAFISCAL, com fallback para NUMERO e depois ID
+-- - DATA_VENDA usa DATASAIDA e, se nula, DATAEMISSAO
+-- - CUSTO_UNITARIO usa CUSTOMEDIO e, se nulo, CUSTOOPERACIONAL
+-- - STATUS_CANCELAMENTO tenta resumir cancelamento e situacao fiscal
+-- - VENDEDOR foi mantido como codigo tecnico do cabecalho: IDVENDEDOR
+-- - NUMERO_PEDIDO usa a hipotese mais forte do inventario:
+--     NFSAIDA.NUMEROORIGEM -> PEDIDO.ID
+--   e traz PEDIDO.NUMPEDIDO como numero comercial do pedido
+
+SELECT
+    n.EMPRESA AS EMPRESA_FILIAL,
+    COALESCE(n.DATASAIDA, n.DATAEMISSAO) AS DATA_VENDA,
+    COALESCE(
+        NULLIF(TRIM(n.NOTAFISCAL), ''),
+        NULLIF(TRIM(n.NUMERO), ''),
+        CAST(n.ID AS VARCHAR(20))
+    ) AS CODIGO_VENDA,
+    c.CODIGO AS CODIGO_CLIENTE,
+    COALESCE(
+        NULLIF(TRIM(c.NOME), ''),
+        NULLIF(TRIM(c.RAZAOSOCIAL), '')
+    ) AS NOME_CLIENTE,
+    ped.NUMPEDIDO AS NUMERO_PEDIDO,
+    p.CODIGO AS CODIGO_PRODUTO,
+    COALESCE(
+        NULLIF(TRIM(p.NOME), ''),
+        NULLIF(TRIM(i.PRODNOME), '')
+    ) AS DESCRICAO_PRODUTO,
+    i.QUANTIDADE AS QUANTIDADE,
+    i.VALORUNITARIO AS VALOR_UNITARIO,
+    COALESCE(i.VALORITEMLIQUIDO, i.VALORITEMBRUTO) AS VALOR_TOTAL,
+    COALESCE(i.CUSTOMEDIO, i.CUSTOOPERACIONAL) AS CUSTO_UNITARIO,
+    COALESCE(i.CUSTOMEDIO, i.CUSTOOPERACIONAL) * COALESCE(i.QUANTIDADE, 0) AS CUSTO_TOTAL,
+    n.IDVENDEDOR AS VENDEDOR_CODIGO,
+    CASE
+        WHEN COALESCE(n.CANCELADA, 'N') = 'S' THEN 'CANCELADA'
+        WHEN COALESCE(n.NOTAANULADA, 'N') = 'S' THEN 'ANULADA'
+        WHEN NULLIF(TRIM(n.STATUSNFE), '') IS NOT NULL THEN 'STATUSNFE_' || TRIM(n.STATUSNFE)
+        WHEN COALESCE(n.CONFERIDO, 'N') = 'S' THEN 'CONFERIDA'
+        ELSE 'ATIVA'
+    END AS STATUS_CANCELAMENTO,
+    n.ID AS ID_NFSAIDA,
+    i.ID AS ID_NFSAIITE,
+    i.ITEM AS ITEM_VENDA,
+    n.CLIENTE AS CODIGO_CLIENTE_ORIGEM,
+    n.NUMEROORIGEM AS NUMERO_ORIGEM_NF,
+    i.IDPRODUTO AS ID_PRODUTO,
+    n.IDFORMAPAGAMENTO AS ID_FORMAPAGAMENTO,
+    n.IDTIPMVSAI AS ID_TIPO_MOVIMENTO
+FROM NFSAIDA n
+JOIN NFSAIITE i
+  ON i.IDNFSAIDA = n.ID
+LEFT JOIN CLIENTE c
+  ON c.CODIGO = n.CLIENTE
+LEFT JOIN PEDIDO ped
+  ON ped.ID = n.NUMEROORIGEM
+LEFT JOIN PRODUTO p
+  ON p.ID = i.IDPRODUTO
+WHERE COALESCE(n.CANCELADA, 'N') <> 'S';
