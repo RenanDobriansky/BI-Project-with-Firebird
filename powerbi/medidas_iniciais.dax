@@ -1,0 +1,74 @@
+-- Medidas iniciais para a primeira analise comercial
+-- Ajuste o nome da coluna de data se a sua dCalendario usar algo diferente de dCalendario[Data]
+
+Faturamento =
+SUM ( fVendas[VALOR_TOTAL_ITEM] )
+
+Quantidade Vendida =
+SUM ( fVendas[QUANTIDADE_ITEM] )
+
+Custo Total =
+SUM ( fVendas[CUSTO_TOTAL] )
+
+Lucro Bruto =
+[Faturamento] - [Custo Total]
+
+Margem Bruta % =
+DIVIDE ( [Lucro Bruto], [Faturamento] )
+
+Qtde Notas Fiscais =
+DISTINCTCOUNT ( fVendas[NOTA_FISCAL] )
+
+Qtde Pedidos =
+DISTINCTCOUNT ( fVendas[PEDIDO] )
+
+Qtde Clientes =
+DISTINCTCOUNT ( fVendas[CODIGO_CLIENTE] )
+
+Qtde Produtos Vendidos =
+DISTINCTCOUNT ( fVendas[CODIGO_PRODUTO] )
+
+Ticket Medio =
+DIVIDE ( [Faturamento], [Qtde Notas Fiscais] )
+
+Preco Medio Unitario =
+DIVIDE ( [Faturamento], [Quantidade Vendida] )
+
+Custo Medio Unitario =
+DIVIDE ( [Custo Total], [Quantidade Vendida] )
+
+Lucro Medio por Nota =
+DIVIDE ( [Lucro Bruto], [Qtde Notas Fiscais] )
+
+Faturamento por Cliente =
+DIVIDE ( [Faturamento], [Qtde Clientes] )
+
+Peso Bruto Total =
+SUM ( fVendas[PESOBRUTO] )
+
+Quantidade de Itens na Nota =
+SUM ( fVendas[QUANTIDADE_NOTA] )
+
+Faturamento MTD =
+TOTALMTD ( [Faturamento], dCalendario[Data] )
+
+Faturamento YTD =
+TOTALYTD ( [Faturamento], dCalendario[Data] )
+
+Faturamento Ano Anterior =
+CALCULATE ( [Faturamento], SAMEPERIODLASTYEAR ( dCalendario[Data] ) )
+
+Variacao Faturamento Ano Anterior =
+[Faturamento] - [Faturamento Ano Anterior]
+
+Variacao % Faturamento Ano Anterior =
+DIVIDE ( [Variacao Faturamento Ano Anterior], [Faturamento Ano Anterior] )
+
+Lucro Bruto MTD =
+TOTALMTD ( [Lucro Bruto], dCalendario[Data] )
+
+Lucro Bruto YTD =
+TOTALYTD ( [Lucro Bruto], dCalendario[Data] )
+
+Margem Bruta % YTD =
+DIVIDE ( [Lucro Bruto YTD], [Faturamento YTD] )

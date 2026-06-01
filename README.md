@@ -5,7 +5,7 @@
 ![Power BI](https://img.shields.io/badge/Power%20BI-Modelagem%20Comercial-F2C811?logo=powerbi&logoColor=black)
 ![Status](https://img.shields.io/badge/Status-Em%20Evolucao-0A7E8C)
 
-Exploracao de um ERP em Firebird com foco em BI, modelagem estrela e preparacao de dados para Power BI.
+Exploracao de um ERP em Firebird com foco em BI, modelagem estrela e preparacao de dados para Power BI, incluindo uma camada inicial de frete a partir de planilha operacional.
 
 ## Visao Geral
 
@@ -18,7 +18,9 @@ Hoje o projeto cobre:
 - exportacao de tabelas e consultas para CSV
 - classificacao de tabelas por assunto
 - hipoteses de relacionamento entre entidades
-- primeiras queries de `fVendas`, `fPedidos`, `dClientes` e `dProdutos`
+- queries iniciais de `fVendas`, `fPedidos`, `dClientes` e `dProdutos`
+- camada de frete manual no Power BI com `fFrete`, `fFrete_base` e `fFreteExcecoes`
+- medidas DAX iniciais para vendas e frete
 
 Repositorio GitHub:
 
@@ -28,13 +30,14 @@ Repositorio GitHub:
 
 Construir uma base inicial para um modelo estrela no Power BI, priorizando o dashboard comercial.
 
-Escopo inicial:
+Escopo atual:
 
 - `fVendas`
 - `fPedidos`
 - `dClientes`
 - `dProdutos`
-- `dCalendario`
+- `dCalendario` no Power BI
+- `fFrete` a partir de planilha manual de transportes
 
 ## Estrutura do Projeto
 
@@ -46,7 +49,14 @@ silo-firebird-bi/
 |-- docs/
 |   |-- dicionario_tabelas.md
 |   |-- inventario_banco.md
-|   `-- modelo_relacionamentos.md
+|   |-- modelo_relacionamentos.md
+|   `-- frete.txt
+|-- powerbi/
+|   |-- fFrete_base.m
+|   |-- fFrete.m
+|   |-- fFreteExcecoes.m
+|   |-- medidas_iniciais.dax
+|   `-- medidas_frete.dax
 |-- queries/
 |   |-- 01_listar_tabelas.sql
 |   |-- 02_listar_colunas.sql
@@ -70,6 +80,7 @@ silo-firebird-bi/
 4. Validar relacionamentos mais provaveis.
 5. Montar queries iniciais das fatos e dimensoes.
 6. Exportar datasets para testes no Power BI.
+7. Estruturar o frete manual em Power Query para cruzamento com `fVendas`.
 
 ## Quick Start
 
@@ -177,11 +188,57 @@ Exportacoes padrao:
 - [queries/bi/validacao_fvendas_qualidade.sql](queries/bi/validacao_fvendas_qualidade.sql)
 - [queries/bi/validacao_fpedidos_qualidade.sql](queries/bi/validacao_fpedidos_qualidade.sql)
 
+## Camada de Frete no Power BI
+
+A primeira versao de frete foi estruturada a partir da planilha manual `CONTROLE TRANSPORTADORA.xlsx`, usando a aba `CONHECIMENTOSILO`.
+
+Arquivos principais:
+
+- [powerbi/fFrete_base.m](powerbi/fFrete_base.m)
+- [powerbi/fFrete.m](powerbi/fFrete.m)
+- [powerbi/fFreteExcecoes.m](powerbi/fFreteExcecoes.m)
+- [powerbi/medidas_frete.dax](powerbi/medidas_frete.dax)
+
+O que essa camada faz:
+
+- trata colunas manuais de frete cotado e frete emitido
+- extrai `NUMERO_NF`, `DATA_NF`, `NUMERO_CTE` e `DATA_CTE`
+- consolida a fato de frete no grao de NF
+- separa excecoes com multiplos conhecimentos ou inconsistencias
+- prepara medidas para analise de frete realizado x cotado
+
+### Relacoes esperadas no modelo
+
+- `dCalendario[Data] -> fFrete[DATA_NF]`
+- `fFrete` deve se relacionar com `fVendas` por numero da NF
+
+Observacao importante:
+
+- como a planilha manual pode trazer NFs sem zeros a esquerda e a `fVendas` pode trazer a nota com mascara como `000024504`, o ideal e criar uma chave auxiliar sem zeros a esquerda nas duas tabelas antes do relacionamento no modelo
+
+## Medidas DAX
+
+Arquivos atuais:
+
+- [powerbi/medidas_iniciais.dax](powerbi/medidas_iniciais.dax)
+- [powerbi/medidas_frete.dax](powerbi/medidas_frete.dax)
+
+As medidas atuais cobrem:
+
+- faturamento, quantidade, custo, lucro e margem
+- contagem de notas, pedidos, clientes e produtos
+- inteligencia temporal basica
+- frete emitido, frete cotado, diferenca de frete e frete percentual sobre a NF
+
 ## Documentacao
 
 - [Dicionario de tabelas](docs/dicionario_tabelas.md)
 - [Inventario do banco](docs/inventario_banco.md)
 - [Hipoteses de relacionamento](docs/modelo_relacionamentos.md)
+- [Metricas DAX iniciais](docs/metricas_dax_iniciais.md)
+- [Release notes iniciais](docs/release_notes_v1.md)
+- [Descricoes para portfolio e LinkedIn](docs/portfolio_descricao.md)
+- [Notas da camada de frete](docs/frete.txt)
 
 ## Tabelas Prioritarias para Dashboard Comercial
 
@@ -200,13 +257,14 @@ Ordem recomendada de investigacao:
 
 ## Direcao Atual do Modelo
 
-Hipotese inicial do modelo comercial:
+Hipotese atual do modelo comercial:
 
 - `fVendas` baseada em `NFSAIDA + NFSAIITE`
 - `fPedidos` baseada em `PEDIDO + PEDITE`
 - `dClientes` baseada em `CLIENTE`
 - `dProdutos` baseada em `PRODUTO + PRODUTOEMPRESA`
-- `dCalendario` criada no Power BI ou via SQL auxiliar
+- `dCalendario` criada no Power BI
+- `fFrete` baseada em planilha manual consolidada no grao de NF
 
 ## Publicacao no GitHub
 
@@ -214,7 +272,7 @@ Hipotese inicial do modelo comercial:
 
 Use esta sugestao no GitHub:
 
-`Exploracao de ERP Firebird para BI com inventario automatizado, validacao de relacionamentos e queries iniciais para Power BI.`
+`Exploracao de ERP Firebird para BI com inventario automatizado, modelagem comercial e camada de frete para Power BI.`
 
 ### Topicos sugeridos
 
@@ -236,47 +294,17 @@ Antes de publicar:
 - revisar se `exports/` deve ficar fora do repositorio
 - manter apenas exemplos ficticios em configuracoes
 
-Fluxo sugerido para este repositorio:
-
-```powershell
-git init
-git add .
-git commit -m "Estrutura inicial de exploracao Firebird para BI"
-git branch -M main
-git remote add origin https://github.com/RenanDobriansky/BI-Project-with-Firebird.git
-git push -u origin main
-```
-
-Se o repositorio remoto ja tiver algum commit inicial criado pelo GitHub, use este fluxo:
-
-```powershell
-git init
-git add .
-git commit -m "Estrutura inicial de exploracao Firebird para BI"
-git branch -M main
-git remote add origin https://github.com/RenanDobriansky/BI-Project-with-Firebird.git
-git pull origin main --allow-unrelated-histories
-git push -u origin main
-```
-
-### Comandos uteis depois da primeira publicacao
-
-```powershell
-git add .
-git commit -m "Atualiza queries e scripts de BI"
-git push
-```
-
 ## Boas Praticas
 
 - Use variaveis de ambiente para credenciais.
 - Trate os CSVs exportados como dados potencialmente sensiveis.
 - Valide relacionamentos antes de consolidar as fatos no Power BI.
 - Prefira exportacoes pequenas no inicio, como `--limit 1000`, para acelerar os testes.
+- Em tabelas manuais, preserve uma camada base e uma camada consolidada para auditoria.
 
 ## Proximos Passos
 
-- criar `dCalendario`
-- refinar regras de cancelamento e status em `fVendas`
-- cruzar `TITRECEB` com vendas para analise comercial x financeiro
-- publicar a primeira versao do modelo no Power BI
+- padronizar a chave de NF entre `fVendas` e `fFrete`
+- validar cobertura de relacionamento entre venda e frete
+- evoluir as medidas de margem considerando frete
+- criar pagina de auditoria no Power BI para `fFreteExcecoes`

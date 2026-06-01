@@ -1,0 +1,52 @@
+﻿-- Medidas iniciais da camada de frete
+-- Relacionamentos esperados:
+-- dCalendario[Data] -> fFrete[DATA_NF]
+-- fFrete[NUMERO_NF] -> fVendas[NOTA_FISCAL]
+
+Frete CTe =
+SUM ( fFrete[VALOR_FRETE_CTE] )
+
+Frete Cotado =
+SUM ( fFrete[VALOR_FRETE_COTADO] )
+
+Diferenca Frete =
+[Frete CTe] - [Frete Cotado]
+
+Diferenca Frete % =
+DIVIDE ( [Diferenca Frete], [Frete Cotado] )
+
+Frete % NF =
+DIVIDE ( [Frete CTe], SUM ( fFrete[VALOR_NF] ) )
+
+Qtde NFs com Frete =
+DISTINCTCOUNT ( fFrete[NUMERO_NF] )
+
+Peso Total Frete =
+SUM ( fFrete[PESO] )
+
+Volume Total Frete =
+SUM ( fFrete[VOLUME] )
+
+Frete Medio por NF =
+DIVIDE ( [Frete CTe], [Qtde NFs com Frete] )
+
+Qtde NFs com Multiplos CTe =
+CALCULATE ( DISTINCTCOUNT ( fFrete[NUMERO_NF] ), fFrete[FLAG_MULTIPLOS_CTES] = TRUE () )
+
+Qtde NFs com Excecao de Qualidade =
+CALCULATE ( DISTINCTCOUNT ( fFrete[NUMERO_NF] ), fFrete[FLAG_EXCECAO_QUALIDADE] = TRUE () )
+
+Frete CTe MTD =
+TOTALMTD ( [Frete CTe], dCalendario[Data] )
+
+Frete CTe YTD =
+TOTALYTD ( [Frete CTe], dCalendario[Data] )
+
+Frete CTe Ano Anterior =
+CALCULATE ( [Frete CTe], SAMEPERIODLASTYEAR ( dCalendario[Data] ) )
+
+Variacao Frete Ano Anterior =
+[Frete CTe] - [Frete CTe Ano Anterior]
+
+Variacao Frete % Ano Anterior =
+DIVIDE ( [Variacao Frete Ano Anterior], [Frete CTe Ano Anterior] )

@@ -1,0 +1,11 @@
+﻿fFrete Power BI
+
+Arquivos principais:
+fFrete_base.m
+fFrete.m
+fFreteExcecoes.m
+medidas_frete.dax
+
+Relacoes:
+dCalendario Data para fFrete DATA_NF
+fFrete NUMERO_NF para fVendas NOTA_FISCAL

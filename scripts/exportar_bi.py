@@ -17,7 +17,7 @@ QUERY_CONFIGS: List[Dict[str, Optional[str]]] = [
     {
         "name": "fVendas",
         "sql_file": "fVendas.sql",
-        "order_by": "DATA_VENDA DESC, CODIGO_VENDA DESC, ID_NFSAIITE DESC",
+        "order_by": "DATA_VENDA DESC, NOTA_FISCAL DESC, ITEM_VENDA DESC",
         "output_file": "fVendas.csv",
     },
     {
@@ -29,19 +29,13 @@ QUERY_CONFIGS: List[Dict[str, Optional[str]]] = [
     {
         "name": "dClientes",
         "sql_file": "dClientes.sql",
-        "order_by": (
-            "COALESCE(DATA_ULTIMA_ALTERACAO_BANCO, DATA_ULTIMA_ATUALIZACAO, "
-            "DATA_CADASTRO) DESC, CODIGO_CLIENTE"
-        ),
+        "order_by": "CODIGO_CLIENTE DESC",
         "output_file": "dClientes.csv",
     },
     {
         "name": "dProdutos",
         "sql_file": "dProdutos.sql",
-        "order_by": (
-            "COALESCE(DATA_ULTIMA_ALTERACAO_FILIAL, DATA_ULTIMA_ALTERACAO_BANCO, "
-            "DATA_CADASTRO) DESC, CODIGO_PRODUTO"
-        ),
+        "order_by": "CODIGO_PRODUTO DESC",
         "output_file": "dProdutos.csv",
     },
 ]
