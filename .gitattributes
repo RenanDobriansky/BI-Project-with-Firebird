@@ -1,0 +1,3 @@
+# Os arquivos .m desta pasta sao consultas Power Query (Linguagem M), nao Wolfram Language.
+# Eles permanecem versionados, mas nao entram nas estatisticas de linguagem do GitHub.
+powerbi/*.m -linguist-detectable
